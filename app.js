@@ -4,7 +4,7 @@ const { get } = require('http');
 const morgan = require('morgan');
 
 const AppError = require('./utils/appError');
-const globalErrorhandler = require('./controllers/errorController');
+const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 
@@ -39,6 +39,6 @@ app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
 });
 
-app.use(globalErrorhandler);
+app.use(globalErrorHandler);
 
 module.exports = app;
