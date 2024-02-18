@@ -11,13 +11,11 @@ exports.aliasTopTours = (req, res, next) => {
 };
 
 exports.getAllTours = catchAsync(async (req, res, next) => {
-  // EXECUTE QUERY
-
   const features = new APIFeatures(Tour.find(), req.query)
     .filter()
     .sort()
     .limitFields()
-    .Pagination();
+    .paginate();
   const tours = await features.query;
 
   // SEND RESPONSE
@@ -57,10 +55,6 @@ exports.createTour = catchAsync(async (req, res, next) => {
   });
 });
 
-//while sending request with put we expect the put to send the entire new object
-// with patch we only update the changed properties rather than the entire object
-// patch comes really handy for mongodb and mongoose
-
 exports.updateTour = catchAsync(async (req, res, next) => {
   const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
@@ -99,7 +93,7 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
     },
     {
       $group: {
-        _id: '$difficulty',
+        _id: { $toUpper: '$difficulty' },
         numTours: { $sum: 1 },
         numRatings: { $sum: '$ratingsQuantity' },
         avgRating: { $avg: '$ratingsAverage' },
@@ -111,7 +105,11 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
     {
       $sort: { avgPrice: 1 },
     },
+    // {
+    //   $match: { _id: { $ne: 'EASY' } }
+    // }
   ]);
+
   res.status(200).json({
     status: 'success',
     data: {
@@ -121,7 +119,7 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
 });
 
 exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
-  const year = req.params.year * 1;
+  const year = req.params.year * 1; // 2021
 
   const plan = await Tour.aggregate([
     {
@@ -151,9 +149,7 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
       },
     },
     {
-      $sort: {
-        numTourStarts: -1,
-      },
+      $sort: { numTourStarts: -1 },
     },
     {
       $limit: 12,
